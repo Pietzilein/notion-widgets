@@ -4,102 +4,146 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wheel of Wellness</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
   body {
     font-family: sans-serif;
+    margin: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin: 0;
-    padding: 20px;
   }
+
+  .container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 40px;
+    width: 100%;
+  }
+
   table {
     border-collapse: collapse;
     margin-bottom: 20px;
+    min-width: 250px;
   }
+
   td, th {
     padding: 8px 12px;
     border: 1px solid #ccc;
   }
-  #wheel {
-    width: 300px;
-    height: 300px;
+
+  canvas {
+    max-width: 400px;
+    max-height: 400px;
+  }
+
+  @media(min-width: 700px) {
+    .container {
+      flex-wrap: nowrap;
+      align-items: flex-start;
+    }
   }
 </style>
 </head>
 <body>
 
 <h2>Wheel of Wellness</h2>
+<div class="container">
+  <!-- Table -->
+  <table id="ratingsTable">
+    <tr>
+      <th>Dimension</th>
+      <th>Rating (1–10)</th>
+    </tr>
+    <tr><td>Spiritual</td><td><input type="number" min="1" max="10" value="5" class="rating"></td></tr>
+    <tr><td>Financial</td><td><input type="number" min="1" max="10" value="5" class="rating"></td></tr>
+    <tr><td>Occupational</td><td><input type="number" min="1" max="10" value="5" class="rating"></td></tr>
+    <tr><td>Physical</td><td><input type="number" min="1" max="10" value="5" class="rating"></td></tr>
+    <tr><td>Environmental</td><td><input type="number" min="1" max="10" value="5" class="rating"></td></tr>
+    <tr><td>Social</td><td><input type="number" min="1" max="10" value="5" class="rating"></td></tr>
+    <tr><td>Intellectual</td><td><input type="number" min="1" max="10" value="5" class="rating"></td></tr>
+    <tr><td>Emotional</td><td><input type="number" min="1" max="10" value="5" class="rating"></td></tr>
+  </table>
 
-<table id="ratingsTable">
-  <tr>
-    <th>Dimension</th>
-    <th>Rating (1–10)</th>
-  </tr>
-  <tr><td>Spiritual</td><td><input type="number" min="1" max="10" value="5" class="rating"></td></tr>
-  <tr><td>Financial</td><td><input type="number" min="1" max="10" value="5" class="rating"></td></tr>
-  <tr><td>Occupational</td><td><input type="number" min="1" max="10" value="5" class="rating"></td></tr>
-  <tr><td>Physical</td><td><input type="number" min="1" max="10" value="5" class="rating"></td></tr>
-  <tr><td>Environmental</td><td><input type="number" min="1" max="10" value="5" class="rating"></td></tr>
-  <tr><td>Social</td><td><input type="number" min="1" max="10" value="5" class="rating"></td></tr>
-  <tr><td>Intellectual</td><td><input type="number" min="1" max="10" value="5" class="rating"></td></tr>
-  <tr><td>Emotional</td><td><input type="number" min="1" max="10" value="5" class="rating"></td></tr>
-</table>
-
-<canvas id="wheel"></canvas>
+  <!-- Radar Chart -->
+  <canvas id="wheelChart"></canvas>
+</div>
 
 <script>
-const canvas = document.getElementById('wheel');
-const ctx = canvas.getContext('2d');
-const radius = 120;
-const center = { x: canvas.width / 2, y: canvas.height / 2 };
+const ctx = document.getElementById('wheelChart').getContext('2d');
 const dimensions = ["Spiritual","Financial","Occupational","Physical","Environmental","Social","Intellectual","Emotional"];
+const colors = [
+  "#7B68EE", "#3CB371", "#00CED1", "#FF6347",
+  "#FFD700", "#FFA500", "#20B2AA", "#FF69B4"
+];
 
-function drawWheel(ratings) {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  
-  const step = (2 * Math.PI) / ratings.length;
-  
-  for (let i = 0; i < ratings.length; i++) {
-    const angle = step * i - Math.PI/2;
-    const r = (ratings[i] / 10) * radius;
-    
-    // Draw ring
-    ctx.beginPath();
-    ctx.moveTo(center.x, center.y);
-    ctx.lineTo(center.x + r * Math.cos(angle), center.y + r * Math.sin(angle));
-    ctx.strokeStyle = "#4CAF50";
-    ctx.lineWidth = 4;
-    ctx.stroke();
-    
-    // Draw label at end of line
-    ctx.fillStyle = "#333";
-    ctx.font = "12px sans-serif";
-    const labelX = center.x + (r + 15) * Math.cos(angle);
-    const labelY = center.y + (r + 15) * Math.sin(angle);
-    ctx.fillText(dimensions[i], labelX - 20, labelY + 5);
-  }
-  
-  // Draw outer circle
-  ctx.beginPath();
-  ctx.arc(center.x, center.y, radius, 0, 2 * Math.PI);
-  ctx.strokeStyle = "#ccc";
-  ctx.lineWidth = 2;
-  ctx.stroke();
+let chart;
+
+function createChart(data) {
+  if (chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: dimensions,
+      datasets: [{
+        label: 'Wellness Rating',
+        data: data,
+        backgroundColor: 'rgba(0, 123, 255, 0.2)',
+        borderColor: '#007bff',
+        borderWidth: 2,
+        pointBackgroundColor: colors,
+        pointBorderColor: colors,
+        pointRadius: 6,
+        pointHoverRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      scales: {
+        r: {
+          min: 0,
+          max: 10,
+          ticks: {
+            stepSize: 1
+          },
+          grid: {
+            color: '#ccc'
+          },
+          angleLines: {
+            color: '#ccc'
+          },
+          pointLabels: {
+            font: {
+              size: 14
+            }
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          display: false
+        }
+      }
+    }
+  });
 }
 
-function updateWheel() {
-  const ratings = Array.from(document.querySelectorAll('.rating')).map(input => Number(input.value));
-  drawWheel(ratings);
-}
+// Initialize with default values
+updateChart();
 
-// Initialize
-updateWheel();
-
-// Add event listeners
-document.querySelectorAll('.rating').forEach(input => {
-  input.addEventListener('input', updateWheel);
+// Update chart when numbers change
+document.querySelectorAll('.rating').forEach((input, i) => {
+  input.addEventListener('input', () => {
+    updateChart();
+  });
 });
+
+function updateChart() {
+  const ratings = Array.from(document.querySelectorAll('.rating')).map(input => Number(input.value));
+  createChart(ratings);
+}
 </script>
 
 </body>
