@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wheel of Wellness</title>
+<style>
+  body {
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+    padding: 20px;
+  }
+  table {
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  td, th {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+  }
+  #wheel {
+    width: 300px;
+    height: 300px;
+  }
+</style>
+</head>
+<body>
+
+<h2>Wheel of Wellness</h2>
+
+<table id="ratingsTable">
+  <tr>
+    <th>Dimension</th>
+    <th>Rating (1–10)</th>
+  </tr>
+  <tr><td>Spiritual</td><td><input type="number" min="1" max="10" value="5" class="rating"></td></tr>
+  <tr><td>Financial</td><td><input type="number" min="1" max="10" value="5" class="rating"></td></tr>
+  <tr><td>Occupational</td><td><input type="number" min="1" max="10" value="5" class="rating"></td></tr>
+  <tr><td>Physical</td><td><input type="number" min="1" max="10" value="5" class="rating"></td></tr>
+  <tr><td>Environmental</td><td><input type="number" min="1" max="10" value="5" class="rating"></td></tr>
+  <tr><td>Social</td><td><input type="number" min="1" max="10" value="5" class="rating"></td></tr>
+  <tr><td>Intellectual</td><td><input type="number" min="1" max="10" value="5" class="rating"></td></tr>
+  <tr><td>Emotional</td><td><input type="number" min="1" max="10" value="5" class="rating"></td></tr>
+</table>
+
+<canvas id="wheel"></canvas>
+
+<script>
+const canvas = document.getElementById('wheel');
+const ctx = canvas.getContext('2d');
+const radius = 120;
+const center = { x: canvas.width / 2, y: canvas.height / 2 };
+const dimensions = ["Spiritual","Financial","Occupational","Physical","Environmental","Social","Intellectual","Emotional"];
+
+function drawWheel(ratings) {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  
+  const step = (2 * Math.PI) / ratings.length;
+  
+  for (let i = 0; i < ratings.length; i++) {
+    const angle = step * i - Math.PI/2;
+    const r = (ratings[i] / 10) * radius;
+    
+    // Draw ring
+    ctx.beginPath();
+    ctx.moveTo(center.x, center.y);
+    ctx.lineTo(center.x + r * Math.cos(angle), center.y + r * Math.sin(angle));
+    ctx.strokeStyle = "#4CAF50";
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    
+    // Draw label at end of line
+    ctx.fillStyle = "#333";
+    ctx.font = "12px sans-serif";
+    const labelX = center.x + (r + 15) * Math.cos(angle);
+    const labelY = center.y + (r + 15) * Math.sin(angle);
+    ctx.fillText(dimensions[i], labelX - 20, labelY + 5);
+  }
+  
+  // Draw outer circle
+  ctx.beginPath();
+  ctx.arc(center.x, center.y, radius, 0, 2 * Math.PI);
+  ctx.strokeStyle = "#ccc";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+function updateWheel() {
+  const ratings = Array.from(document.querySelectorAll('.rating')).map(input => Number(input.value));
+  drawWheel(ratings);
+}
+
+// Initialize
+updateWheel();
+
+// Add event listeners
+document.querySelectorAll('.rating').forEach(input => {
+  input.addEventListener('input', updateWheel);
+});
+</script>
+
+</body>
+</html>
